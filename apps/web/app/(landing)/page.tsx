@@ -6,11 +6,8 @@ import { Toaster } from "@repo/ui/shadcn/toaster";
 import Features from "./Features";
 import Footer from "./footer";
 import { auth } from "../helpers/server/auth";
-import { redirect } from "next/navigation";
-import FUIPricingSectionWithBadge from "./Pricing";
 import Services from "./Features/index";
 import { Showcases } from "./Showcase";
-import { cn } from "@repo/ui/lib/utils";
 import BackgroundPlus from "./GridPatterns/PlusGrid";
 
 export const runtime = "edge";
