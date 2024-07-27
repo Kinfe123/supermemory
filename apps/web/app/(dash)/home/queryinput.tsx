@@ -1,100 +1,99 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
+import { FilterSpaces } from "./filterSpaces";
 import { ArrowRightIcon } from "@repo/ui/icons";
 import Image from "next/image";
-import React, { useState } from "react";
-import Divider from "@repo/ui/shadcn/divider";
-import { MultipleSelector, Option } from "@repo/ui/shadcn/combobox";
-import { useRouter } from "next/navigation";
+import { Switch } from "@repo/ui/shadcn/switch";
+import { Label } from "@repo/ui/shadcn/label";
 
 function QueryInput({
-  initialQuery = "",
-  initialSpaces = [],
-  disabled = false,
+	initialSpaces,
+	handleSubmit,
+	query,
+	setQuery,
 }: {
-  initialQuery?: string;
-  initialSpaces?: { user: string | null; id: number; name: string }[];
-  disabled?: boolean;
+	initialSpaces?: {
+		id: number;
+		name: string;
+	}[];
+	mini?: boolean;
+	handleSubmit: (
+		q: string,
+		spaces: { id: number; name: string }[],
+		proMode: boolean,
+	) => void;
+	query: string;
+	setQuery: (q: string) => void;
 }) {
-  const [q, setQ] = useState(initialQuery);
+	const [proMode, setProMode] = useState(false);
 
-  const [selectedSpaces, setSelectedSpaces] = useState<number[]>([]);
+	const [selectedSpaces, setSelectedSpaces] = useState<
+		{ id: number; name: string }[]
+	>([]);
 
-  const { push } = useRouter();
-
-  const parseQ = () => {
-    // preparedSpaces is list of spaces selected by user, with id and name
-    const preparedSpaces = initialSpaces
-      .filter((x) => selectedSpaces.includes(x.id))
-      .map((x) => {
-        return {
-          id: x.id,
-          name: x.name,
-        };
-      });
-
-    const newQ =
-      "/chat?q=" +
-      encodeURI(q) +
-      (selectedSpaces ? "&spaces=" + JSON.stringify(preparedSpaces) : "");
-
-    return newQ;
-  };
-
-  const options = initialSpaces.map((x) => ({
-    label: x.name,
-    value: x.id.toString(),
-  }));
-
-  return (
-    <div>
-      <div className="bg-secondary rounded-t-[24px] w-full mt-40">
-        {/* input and action button */}
-        <form action={async () => push(parseQ())} className="flex gap-4 p-3">
-          <textarea
-            name="q"
-            cols={30}
-            rows={4}
-            className="bg-transparent pt-2.5 text-base text-[#989EA4] focus:text-foreground duration-200 tracking-[3%] outline-none resize-none w-full p-4"
-            placeholder="Ask your second brain..."
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                if (!e.shiftKey) push(parseQ());
-              }
-            }}
-            onChange={(e) => setQ(e.target.value)}
-            value={q}
-            disabled={disabled}
-          />
-
-          <button
-            type="submit"
-            disabled={disabled}
-            className="h-12 w-12 rounded-[14px] bg-[#21303D] all-center shrink-0 hover:brightness-125 duration-200 outline-none focus:outline focus:outline-primary active:scale-90"
-          >
-            <Image src={ArrowRightIcon} alt="Right arrow icon" />
-          </button>
-        </form>
-
-        <Divider />
-      </div>
-      {/* selected sources */}
-      <div className="flex items-center gap-6 p-2 h-auto bg-secondary rounded-b-[24px]">
-        <MultipleSelector
-          disabled={disabled}
-          defaultOptions={options}
-          onChange={(e) => setSelectedSpaces(e.map((x) => parseInt(x.value)))}
-          placeholder="Focus on specific spaces..."
-          emptyIndicator={
-            <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-              no results found.
-            </p>
-          }
-        />
-      </div>
-    </div>
-  );
+	return (
+		<div className={`w-full`}>
+			<div
+				className={`bg-secondary border-2 border-border overflow-hidden shadow-md shadow-[#1d1d1dc7] rounded-3xl`}
+			>
+				{/* input and action button */}
+				<form
+					action={async () => {
+						if (query.trim().length === 0) {
+							return;
+						}
+						handleSubmit(query, selectedSpaces, proMode);
+						setQuery("");
+					}}
+				>
+					<textarea
+						autoFocus
+						name="q"
+						cols={30}
+						rows={3}
+						className="bg-transparent text-lg placeholder:text-[#9B9B9B] text-gray-200 tracking-[3%] outline-none resize-none w-full p-7"
+						placeholder="Ask your second brain..."
+						onKeyDown={(e) => {
+							if (e.key === "Enter" && !e.shiftKey) {
+								e.preventDefault();
+								if (query.trim().length === 0) {
+									return;
+								}
+								handleSubmit(query, selectedSpaces, proMode);
+								setQuery("");
+							}
+						}}
+						onChange={(e) => setQuery(e.target.value)}
+						value={query}
+					/>
+					<div className="flex p-2 px-3 w-full items-center justify-between rounded-xl overflow-hidden">
+						<FilterSpaces
+							selectedSpaces={selectedSpaces}
+							setSelectedSpaces={setSelectedSpaces}
+							initialSpaces={initialSpaces || []}
+						/>
+						<div className="flex items-center gap-4">
+							<div className="flex items-center gap-2">
+								<Label htmlFor="pro-mode" className="text-sm text-[#9B9B9B]">
+									Pro mode
+								</Label>
+								<Switch
+									value={proMode ? "on" : "off"}
+									onCheckedChange={(v) => setProMode(v)}
+									id="pro-mode"
+									about="Pro mode"
+								/>
+							</div>
+							<button type="submit" className="rounded-lg bg-[#369DFD1A] p-3">
+								<Image src={ArrowRightIcon} alt="Enter" />
+							</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	);
 }
 
 export default QueryInput;
