@@ -26,11 +26,13 @@ export default function Home() {
 			await completeOnboarding();
 		};
 		if (currStep > 3) {
-			updateDb().then(() => {
-				push("/home?q=what%20is%20supermemory");
-			}).catch((e) => {
-        console.error(e);
-      });
+			updateDb()
+				.then(() => {
+					push("/home?q=what%20is%20supermemory");
+				})
+				.catch((e) => {
+					console.error(e);
+				});
 		}
 	}, [currStep]);
 
@@ -49,7 +51,7 @@ export default function Home() {
 			<Navbar />
 
 			{/* main-content */}
-			<div className="w-full max-w-3xl p-4 flex flex-col items-center justify-center mx-auto mt-24">
+			<div className="w-full max-w-3xl p-4 flex flex-col items-center justify-center mx-auto pt-24">
 				{currStep === 0 && (
 					<div className="text-white space-y-3 flex flex-col gap-16 w-full">
 						<h1 className="text-3xl md:text-5xl tracking-tighter">
@@ -292,7 +294,7 @@ function StepThree({ currStep }: { currStep: number }) {
 									});
 
 									if (cont.success) {
-										toast.success("Memory created", {
+										toast.success("Memory queued", {
 											richColors: true,
 										});
 									} else {
@@ -390,6 +392,24 @@ function Navbar() {
 	const router = useRouter();
 	const handleSkip = async () => {
 		await completeOnboarding();
+		toast.info("Creating memory...", {
+			icon: <PlusCircleIcon className="w-4 h-4 text-white animate-spin" />,
+			duration: 7500,
+		});
+
+		const cont = await createMemory({
+			content: "https://supermemory.ai",
+			spaces: undefined,
+		});
+
+		if (cont.success) {
+			toast.success("Memory created", {
+				richColors: true,
+			});
+		} else {
+			toast.error(`Memory creation failed: ${cont.error}`);
+		}
+
 		router.push("/home?q=what%20is%20supermemory");
 	};
 

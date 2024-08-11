@@ -1,4 +1,4 @@
-import { StoredSpace } from "@/server/db/schema";
+import { StoredSpace } from "@repo/db/schema";
 import { useEffect, useMemo, useState } from "react";
 import { createMemory, createSpace } from "../actions/doers";
 import ComboboxWithCreate from "@repo/ui/shadcn/combobox";
@@ -74,14 +74,6 @@ export function DialogContentContainer({
 
 		setContent("");
 		setSelectedSpaces([]);
-
-		if (cont.success) {
-			toast.success("Memory created", {
-				richColors: true,
-			});
-		} else {
-			toast.error(`Memory creation failed: ${cont.error}`);
-		}
 	};
 
 	useEffect(() => {
@@ -182,10 +174,7 @@ export function DialogContentContainer({
 								]);
 								setSelectedSpaces((prev) => [...prev, creationTask.data!]);
 							} else {
-								toast.error(
-									"Space creation failed: " + creationTask.error ??
-										"Unknown error",
-								);
+								toast.error("Space creation failed: " + creationTask.error);
 							}
 						}}
 						placeholder="Select or create a new space."

@@ -21,6 +21,7 @@ import { useToast } from "./ui/shadcn/use-toast";
 import { Input } from "./ui/shadcn/input";
 import { Label } from "./ui/shadcn/label";
 import { Textarea } from "./ui/shadcn/textarea";
+import ShowCommandMenu from "./showCommandMenu";
 
 const BACKEND_URL = "https://supermemory.ai";
 
@@ -39,7 +40,7 @@ export default function ContentApp({
 
 	const [webNote, setWebNote] = useState<string>("");
 
-	const [importedCount, setImportedCount] = useState(0);
+	const [importedMessage, setImportedMessage] = useState("Importing...");
 	const [isImporting, setIsImporting] = useState(false);
 	const [importDone, setImportDone] = useState(false);
 
@@ -96,6 +97,52 @@ export default function ContentApp({
 		}
 	};
 
+	const [timer, setTimer] = useState(null);
+	const [progress, setProgress] = useState(0);
+	const timerRef = useRef(null);
+
+	useEffect(() => {
+		if (isPopoverOpen && !timer) {
+			startTimer();
+		}
+	}, [isPopoverOpen]);
+
+	const startTimer = () => {
+		setProgress(0);
+		// @ts-ignore
+		timerRef.current = setInterval(() => {
+			setProgress((prev) => {
+				if (prev >= 100) {
+					clearInterval(timerRef.current!);
+					saveContent();
+					return prev;
+				}
+				return prev + 5;
+			});
+		}, 100);
+	};
+
+	const stopTimer = () => {
+		clearInterval(timerRef.current!);
+		setTimer(null);
+	};
+
+	const saveContent = async () => {
+		await sendUrlToAPI(selectedSpace ? [selectedSpace] : []);
+	};
+
+	const handleInputChange = (
+		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+	) => {
+		setWebNote(e.target.value);
+		stopTimer();
+	};
+
+	const handleSelectChange = (value: string) => {
+		setSelectedSpace(value);
+		stopTimer();
+	};
+
 	useEffect(() => {
 		document.addEventListener("mousemove", (e) => {
 			const percentageX = (e.clientX / window.innerWidth) * 100;
@@ -117,7 +164,7 @@ export default function ContentApp({
 		chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			if (request.type === "import-update") {
 				setIsImporting(true);
-				setImportedCount(request.importedCount);
+				setImportedMessage(request.importedMessage);
 			}
 
 			if (request.type === "import-done") {
@@ -131,6 +178,13 @@ export default function ContentApp({
 				});
 			}
 		});
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (isPopoverOpen) {
+				e.stopPropagation();
+				e.preventDefault();
+			}
+		};
+		document.addEventListener("keydown", handleKeyDown, true);
 
 		const portalDiv = document.createElement("div");
 		portalDiv.id = "popover-portal";
@@ -139,6 +193,7 @@ export default function ContentApp({
 
 		return () => {
 			document.removeEventListener("mousemove", () => {});
+			document.removeEventListener("keydown", handleKeyDown, true);
 		};
 	}, []);
 
@@ -221,6 +276,15 @@ export default function ContentApp({
 				if (rep.status === 200) {
 					toast({
 						title: "Saved to supermemory.ai",
+						action: (
+							<button
+								onClick={() => {
+									window.open(`https://supermemory.ai`, "_blank");
+								}}
+							>
+								View
+							</button>
+						),
 					});
 				} else {
 					toast({
@@ -292,7 +356,10 @@ export default function ContentApp({
 						</div>
 					) : (
 						<div className="flex flex-col gap-2">
-							<Select onValueChange={(value) => setSelectedSpace(value)}>
+							<span className="text-xl text-white">
+								Saving to supermemory.ai
+							</span>
+							<Select onValueChange={handleSelectChange}>
 								<SelectTrigger className="text-white">
 									<SelectValue
 										className="placeholder:font-semibold placeholder:text-white"
@@ -316,7 +383,7 @@ export default function ContentApp({
 							</Label>
 							<Textarea
 								value={webNote}
-								onChange={(e) => setWebNote(e.target.value)}
+								onChange={handleInputChange}
 								placeholder="Add a note"
 								className="text-white"
 								id="input-note"
@@ -334,6 +401,12 @@ export default function ContentApp({
 											?.name
 									: "supermemory.ai"}
 							</button>
+							<div className="relative h-1 w-full bg-gray-300 mt-2">
+								<div
+									className="absolute h-1 bg-blue-600"
+									style={{ width: `${progress}%` }}
+								></div>
+							</div>
 						</div>
 					)}
 				</PopoverContent>
@@ -397,7 +470,7 @@ export default function ContentApp({
 
 								{isImporting && (
 									<div className="flex items-center gap-2">
-										<p>Imported {importedCount} bookmarks</p>
+										<p>{importedMessage}</p>
 										<svg
 											className="animate-spin w-6 h-6"
 											xmlns="http://www.w3.org/2000/svg"
@@ -425,6 +498,10 @@ export default function ContentApp({
 					</PopoverContent>
 				</Popover>
 			)}
+			{/* 
+      <div className="flex min-h-screen w-screen top-0 left-0 bg-black/50 backdrop-blur-sm items-center justify-center">
+        <ShowCommandMenu />
+      </div> */}
 		</div>
 	);
 }

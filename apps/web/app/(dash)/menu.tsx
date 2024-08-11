@@ -28,11 +28,22 @@ import { getSpaces } from "../actions/fetchers";
 import { HomeIcon } from "@heroicons/react/24/solid";
 import { createMemory, createSpace } from "../actions/doers";
 import ComboboxWithCreate from "@repo/ui/shadcn/combobox";
-import { StoredSpace } from "@/server/db/schema";
+import { StoredSpace } from "@repo/db/schema";
 import useMeasure from "react-use-measure";
+import { useKeyPress } from "@/lib/useKeyPress";
+import { useFormStatus } from "react-dom";
 
 function Menu() {
 	const [spaces, setSpaces] = useState<StoredSpace[]>([]);
+
+	function SubmitButton() {
+		const status = useFormStatus();
+		return (
+			<Button disabled={status.pending} variant={"secondary"} type="submit">
+				Save {autoDetectedType != "none" && autoDetectedType}
+			</Button>
+		);
+	}
 
 	useEffect(() => {
 		(async () => {
@@ -48,7 +59,11 @@ function Menu() {
 			setSpaces(spaces.data);
 		})();
 	}, []);
-
+	useKeyPress("a", () => {
+		if (!dialogOpen) {
+			setDialogOpen(true);
+		}
+	});
 	const menuItems = [
 		{
 			icon: HomeIconWeb,
@@ -60,6 +75,12 @@ function Menu() {
 			icon: MemoriesIcon,
 			text: "Memories",
 			url: "/memories",
+			disabled: false,
+		},
+		{
+			icon: CanvasIcon,
+			text: "Thinkpad",
+			url: "/thinkpad",
 			disabled: false,
 		},
 	];
@@ -76,9 +97,11 @@ function Menu() {
 			content.match(/https?:\/\/(x\.com|twitter\.com)\/[\w]+\/[\w]+\/[\d]+/)
 		) {
 			return "tweet";
-		} else if (content.match(/https?:\/\/[\w\.]+/)) {
-			return "page";
-		} else if (content.match(/https?:\/\/www\.[\w\.]+/)) {
+		} else if (
+			content.match(
+				/^(https?:\/\/)?(www\.)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(\/.*)?$/i,
+			)
+		) {
 			return "page";
 		} else {
 			return "note";
@@ -98,34 +121,30 @@ function Menu() {
 
 	const handleSubmit = async (content?: string, spaces?: number[]) => {
 		setDialogOpen(false);
-
-		toast.info("Creating memory...", {
-			icon: <PlusCircleIcon className="w-4 h-4 text-white animate-spin" />,
-			duration: 7500,
-		});
-
 		if (!content || content.length === 0) {
-			toast.error("Content is required");
-			return;
+			throw new Error("Content is required");
 		}
-
-		console.log(spaces);
-
 		const cont = await createMemory({
 			content: content,
 			spaces: spaces ?? undefined,
 		});
-
 		setContent("");
 		setSelectedSpaces([]);
+		return cont;
+	};
 
-		if (cont.success) {
-			toast.success("Memory created", {
-				richColors: true,
-			});
-		} else {
-			toast.error(`Memory creation failed: ${cont.error}`);
-		}
+	const formSubmit = () => {
+		toast.promise(handleSubmit(content, selectedSpaces), {
+			loading: (
+				<span>
+					<PlusCircleIcon className="w-4 h-4 inline mr-2 text-white animate-spin" />{" "}
+					Creating memory...
+				</span>
+			),
+			success: (data) => "Memory queued",
+			error: (error) => `Memory creation failed: ${error}`,
+			richColors: true,
+		});
 	};
 
 	return (
@@ -177,14 +196,7 @@ function Menu() {
 				</div>
 
 				<DialogContent className="sm:max-w-[475px] text-[#F2F3F5] rounded-2xl bg-background z-[39]">
-					<form
-						action={async (e: FormData) => {
-							const content = e.get("content")?.toString();
-
-							await handleSubmit(content, selectedSpaces);
-						}}
-						className="flex flex-col gap-4 "
-					>
+					<form action={formSubmit} className="flex flex-col gap-4 ">
 						<DialogHeader>
 							<DialogTitle>Add memory</DialogTitle>
 							<DialogDescription className="text-[#F2F3F5]">
@@ -205,7 +217,7 @@ function Menu() {
 								onKeyDown={(e) => {
 									if (e.key === "Enter" && !e.shiftKey) {
 										e.preventDefault();
-										handleSubmit(content, selectedSpaces);
+										formSubmit();
 									}
 								}}
 							/>
@@ -258,10 +270,7 @@ function Menu() {
 										]);
 										setSelectedSpaces((prev) => [...prev, creationTask.data!]);
 									} else {
-										toast.error(
-											"Space creation failed: " + creationTask.error ??
-												"Unknown error",
-										);
+										toast.error("Space creation failed: " + creationTask.error);
 									}
 								}}
 								placeholder="Select or create a new space."
@@ -300,13 +309,7 @@ function Menu() {
 						</div>
 
 						<DialogFooter>
-							<Button
-								disabled={autoDetectedType === "none"}
-								variant={"secondary"}
-								type="submit"
-							>
-								Save {autoDetectedType != "none" && autoDetectedType}
-							</Button>
+							<SubmitButton />
 						</DialogFooter>
 					</form>
 				</DialogContent>

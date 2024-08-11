@@ -6,6 +6,8 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { cn } from "@repo/ui/lib/utils";
 import { Toaster } from "@repo/ui/shadcn/toaster";
+import { PHProvider } from "./providers";
+import PostHogPageView from "./PHPageViews";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -57,6 +59,7 @@ export const metadata: Metadata = {
 			},
 		],
 	},
+	manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({
@@ -74,17 +77,19 @@ export default function RootLayout({
 					data-cf-beacon='{"token": "16d76ebb82c74d9983b71d09ab6617bc"}'
 				></script>
 			</head>
-			{/* TODO: when lightmode support is added, remove the 'dark' class from the body tag */}
-			<body
-				className={cn(
-					`${inter.className} dark`,
-					GeistMono.variable,
-					GeistSans.variable,
-				)}
-			>
-				{children}
-				<Toaster />
-			</body>
+			<PHProvider>
+				<body
+					className={cn(
+						`${inter.className} dark`,
+						GeistMono.variable,
+						GeistSans.variable,
+					)}
+				>
+					{children}
+					<Toaster />
+					{/* <PostHogPageView /> */}
+				</body>
+			</PHProvider>
 		</html>
 	);
 }

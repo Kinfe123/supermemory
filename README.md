@@ -21,7 +21,7 @@ Interested in helping build the best second brain for everyone? Join the discord
 
 ## 👀 What is this?
 
-Build your own second brain with supermemory. It's a ChatGPT for your bookmarks. Import tweets or save websites and content using the [chrome extension](https://chromewebstore.google.com/detail/supermemory/afpgkkipfdpeaflnpoaffkcankadgjfc?hl=en-GB&authuser=0) (the extension on webstore is not updated, please use the one in the repo)
+Build your own second brain with supermemory. It's a ChatGPT for your bookmarks. Import tweets or save websites and content using the [Chrome extension](https://chromewebstore.google.com/detail/supermemory/afpgkkipfdpeaflnpoaffkcankadgjfc?hl=en-GB&authuser=0)
 
 Well, here's the thing - me and @yxshv save a _lot_ of content on the internet.
 
@@ -66,7 +66,7 @@ To use the chrome extension,
    <img width="480" alt="image" src="https://github.com/MaheshtheDev/supermemory/assets/38828053/2efb06a5-912a-48e7-ad1c-d527e7ffbc94">
 
 3. Click on save button and give it 10 - 20 secs, where supermemory extension will sync all your twitter bookmarks to supermemory.ai
-4. Volia! Now your second brain has all your twitter bookmarks.
+4. Voila! Now your second brain has all your twitter bookmarks.
 
 ## 👨‍💻 The Stack
 
@@ -76,7 +76,8 @@ To use the chrome extension,
 
 #### Architecture:
 
-![overview](https://i.dhr.wtf/r/Clipboard_Apr_14,_2024_at_4.52 PM.png)
+<img width="715" alt="image" src="https://github.com/user-attachments/assets/f2e38b28-8cfe-4331-9b84-a91902682ddd">
+
 
 Supermemory has three main modules, managed by [turborepo](https://turbo.build):
 
@@ -88,11 +89,11 @@ The database, auth etc logic is here
 
 Built with:
 
-- Nextjs 14
+- [Nextjs 14](https://nextjs.org/)
 - [Next Auth](https://next-auth.js.org/)
 - [Drizzle ORM](https://drizzle.team/)
 - [Cloudflare D1 database](https://developers.cloudflare.com/d1/get-started/)
-- Cloudflare ratelimiter
+- [Cloudflare ratelimiter](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/)
 - [TailwindCSS](https://tailwindcss.com)
 - [shadcn-ui](https://ui.shadcn.com)
 - And some other amazing open source projects like [Novel](https://novel.sh) and [vaul](https://vaul.emilkowal.ski/)
@@ -123,6 +124,7 @@ Built with:
 - [Cloudflare Queues](https://developers.cloudflare.com/queues/)
 - [Cloudflare Browser Rendering](https://developers.cloudflare.com/browser-rendering/)
 - [Cloudflare KV](https://developers.cloudflare.com/kv)
+- [mem0](https://app.mem0.ai)
 
 ## Star History
 

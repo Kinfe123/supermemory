@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+
+export const LIMITS = {
+	page: 100,
+	tweet: 1000,
+	note: 1000,
+};
+
+
+
 export const SourceZod = z.object({
 	type: z.string(),
 	source: z.string(),
@@ -77,7 +86,7 @@ export function convertChatHistoryList(
 }
 
 export const sourcesZod = z.object({
-	ids: z.array(z.string()),
+	ids: z.array(z.string().nullable()),
 	metadata: z.array(z.any()),
 	normalizedData: z.array(z.any()).optional(),
 	proModeListedQueries: z.array(z.string()).optional(),
